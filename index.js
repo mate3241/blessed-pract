@@ -7,12 +7,26 @@ var screen = blessed.screen({
 
 screen.title = 'Receptek';
 
+let header = blessed.box({
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '10%',
+  align: 'center',
+  valign: 'middle',
+  content: 'Receptkezelő 0.1',
+  border: {
+    type: 'line'
+  }
+
+});
+screen.append(header);
 // Create a box perfectly centered horizontally and vertically.
 var box = blessed.box({
-  bottom: 0,
-  right: 0,
-  width: '65%',
-  height: '90%',
+  bottom: 5,
+  left: 0,
+  width: '20%',
+  height: '80%',
   content: '{center}Ide jön majd a receptek listája{/center}',
   tags: true,
   border: {
@@ -29,33 +43,25 @@ var box = blessed.box({
     }
   }
 });
+const categories = ['előétel', 'leves', 'főétel', 'desszert'];
+const fillListWithCategories = () => {
+
+  list.insertLine(1, categories);
+};
 
 // Append our box to the screen.
 screen.append(box);
 
-let header = blessed.box({
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '10%',
-  align: 'center',
-  content: 'Receptkezelő 0.1',
-  border: {
-    type: 'line'
-  }
-
-});
-screen.append(header);
-
 var list = blessed.listbar({
-  bottom: 0,
-  left: 0,
-  width: '35%',
-  height: '90%',
-  content: 'valami',
+  bottom: 5,
+  right: 0,
+  width: '80%',
+  height: '80%',
+  content: 'itt lesznek leírva a receptek',
   border: {
     type: 'line'
   },
+  focusable: true,
   style: {
     fg: 'white',
     bg: 'magenta',
@@ -67,6 +73,52 @@ var list = blessed.listbar({
 });
 
 screen.append(list);
+var crud = blessed.box({
+  bottom: 0,
+  height: '8%',
+  mouse: true,
+  keyboard: true,
+  autoCommandKeys: true,
+  border: 'line',
+  align: 'center',
+
+  style: {
+    bg: 'green',
+    item: {
+      bg: 'red',
+      hover: {
+        bg: 'blue'
+      }
+    },
+    selected: {
+      bg: 'blue'
+    }
+  },
+  commands: {
+    Create: {
+      callback: function () {
+        console.log('Create');
+      }
+    },
+    Read: {
+      callback: function () {
+        console.log('Read');
+      }
+    },
+    Update: {
+      callback: function () {
+        console.log('Update');
+      }
+    },
+    Destroy: {
+      callback: function () {
+        console.log('Destroy');
+      }
+    }
+  }
+});
+screen.append(crud);
+// fillListWithCategories();
 
 // If our box is clicked, change the content.
 box.on('click', function (data) {
@@ -86,9 +138,7 @@ box.key('enter', function (ch, key) {
 screen.key(['escape', 'q', 'C-c'], function (ch, key) {
   return process.exit(0);
 });
-
 // Focus our element.
 box.focus();
-
 // Render the screen.
 screen.render();
