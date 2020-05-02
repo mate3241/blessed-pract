@@ -1,0 +1,23 @@
+{
+  "name": "blessed-pract",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mate3241/blessed-pract.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mate3241/blessed-pract/issues"
+  },
+  "homepage": "https://github.com/mate3241/blessed-pract#readme",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "knex": "^0.20.13"
+  }
+}
