@@ -6,8 +6,13 @@ var screen = blessed.screen({
 });
 
 screen.title = 'Receptek';
-
-let header = blessed.box({
+const food = {
+  előétel: ['sajttál', 'pirítós', 'saláta'],
+  leves: ['gombakrémleves', 'halászlé', 'gulyásleves'],
+  főétel: ['sült kacsa', 'oldalas', 'rántott sajt'],
+  desszert: ['palacsinta', 'dobostorta', 'tiramisu']
+};
+const header = blessed.box({
   top: 0,
   left: 0,
   width: '100%',
@@ -20,15 +25,16 @@ let header = blessed.box({
   }
 
 });
-screen.append(header);
 // Create a box perfectly centered horizontally and vertically.
-var box = blessed.box({
+const categoriesList = blessed.list({
   bottom: 5,
   left: 0,
   width: '20%',
   height: '80%',
-  content: '{center}Ide jön majd a receptek listája{/center}',
+  items: Object.getOwnPropertyNames(food),
   tags: true,
+  mouse: true,
+  keys: true,
   border: {
     type: 'line'
   },
@@ -38,50 +44,47 @@ var box = blessed.box({
     border: {
       fg: '#f0f0f0'
     },
-    hover: {
-      bg: 'green'
+    focus: {
+      border: {
+        fg: 'green'
+      }
     }
   }
 });
-const categories = ['előétel', 'leves', 'főétel', 'desszert'];
-const fillListWithCategories = () => {
 
-  list.insertLine(1, categories);
-};
-
-// Append our box to the screen.
-screen.append(box);
-
-var list = blessed.listbar({
+const foodList = blessed.list({
   bottom: 5,
   right: 0,
   width: '80%',
   height: '80%',
-  content: 'itt lesznek leírva a receptek',
   border: {
     type: 'line'
   },
+  items: food['előétel'],
+  keys: true,
+  mouse: true,
   focusable: true,
   style: {
     fg: 'white',
     bg: 'magenta',
     border: {
       fg: 'f0f0f0'
+    },
+    focus: {
+      border: {
+        fg: 'green'
+      }
     }
   }
-
 });
 
-screen.append(list);
-var crud = blessed.box({
+var crudBar = blessed.listbar({
   bottom: 0,
   height: '8%',
   mouse: true,
   keyboard: true,
-  autoCommandKeys: true,
   border: 'line',
   align: 'center',
-
   style: {
     bg: 'green',
     item: {
@@ -96,49 +99,63 @@ var crud = blessed.box({
   },
   commands: {
     Create: {
+      keys: ['C-c'],
       callback: function () {
         console.log('Create');
       }
     },
     Read: {
+      keys: ['C-r'],
       callback: function () {
         console.log('Read');
       }
     },
     Update: {
+      keys: ['C-u'],
       callback: function () {
         console.log('Update');
       }
     },
     Destroy: {
+      keys: ['C-d'],
       callback: function () {
         console.log('Destroy');
       }
     }
   }
 });
-screen.append(crud);
-// fillListWithCategories();
-
+foodList.on('click', function (data) {
+  foodList.focus();
+});
 // If our box is clicked, change the content.
-box.on('click', function (data) {
-  box.setContent('{center}Some different {red-fg}content{/red-fg}.{/center}');
-  screen.render();
+categoriesList.on('click', function (data) {
+  categoriesList.focus();
 });
-
+categoriesList.key('tab', function (ch, key) {
+  foodList.focus();
+});
+foodList.key('tab', function (ch, key) {
+  categoriesList.focus();
+});
 // If box is focused, handle `enter`/`return` and give us some more content.
-box.key('enter', function (ch, key) {
-  box.setContent('{right}Even different {black-fg}content{/black-fg}.{/right}\n');
-  box.setLine(1, 'bar');
-  box.insertLine(1, 'foo');
+categoriesList.key('enter', function (ch, key) {
+  //foodList.setItems(food.item);
+  
+  //categoriesList.setLine(1, 'bar');
+  //categoriesList.insertLine(1, 'foo');
   screen.render();
 });
-
-// Quit on Escape, q, or Control-C.
-screen.key(['escape', 'q', 'C-c'], function (ch, key) {
+categoriesList.on('select', function (item, select) {
+  foodList.setItems([]);
+  foodList.setItems(food[item.getText()]);
+  screen.render();
+  });
+screen.key(['escape', 'q'], function (ch, key) {
   return process.exit(0);
 });
-// Focus our element.
-box.focus();
-// Render the screen.
+screen.append(header);
+screen.append(categoriesList);
+screen.append(foodList);
+screen.append(crudBar);
+categoriesList.focus();
 screen.render();
