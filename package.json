@@ -18,6 +18,7 @@
   "homepage": "https://github.com/mate3241/blessed-pract#readme",
   "dependencies": {
     "blessed": "^0.1.81",
-    "knex": "^0.20.13"
+    "knex": "^0.20.15",
+    "mysql": "^2.18.1"
   }
 }

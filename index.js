@@ -1,17 +1,20 @@
+const knex = require('knex')({
+  client: 'mysql',
+  connection: {
+    host: '127.0.0.1',
+    user: 'root',
+    password: 'toor',
+    database: 'blessed_recipes'
+  }
+});
 var blessed = require('blessed');
 
-// Create a screen object.
 var screen = blessed.screen({
   smartCSR: true
 });
 
 screen.title = 'Receptek';
-const food = {
-  előétel: ['sajttál', 'pirítós', 'saláta'],
-  leves: ['gombakrémleves', 'halászlé', 'gulyásleves'],
-  főétel: ['sült kacsa', 'oldalas', 'rántott sajt'],
-  desszert: ['palacsinta', 'dobostorta', 'tiramisu']
-};
+
 const header = blessed.box({
   top: 0,
   left: 0,
@@ -23,15 +26,12 @@ const header = blessed.box({
   border: {
     type: 'line'
   }
-
 });
-// Create a box perfectly centered horizontally and vertically.
 const categoriesList = blessed.list({
   bottom: 5,
   left: 0,
   width: '20%',
   height: '80%',
-  items: Object.getOwnPropertyNames(food),
   tags: true,
   mouse: true,
   keys: true,
@@ -52,7 +52,7 @@ const categoriesList = blessed.list({
   }
 });
 
-const foodList = blessed.list({
+const recipeList = blessed.list({
   bottom: 5,
   right: 0,
   width: '80%',
@@ -60,7 +60,6 @@ const foodList = blessed.list({
   border: {
     type: 'line'
   },
-  items: food['előétel'],
   keys: true,
   mouse: true,
   focusable: true,
@@ -124,38 +123,69 @@ var crudBar = blessed.listbar({
     }
   }
 });
-foodList.on('click', function (data) {
-  foodList.focus();
+screen.key('tab', function (ch, key) {
+  screen.focusNext();
 });
-// If our box is clicked, change the content.
 categoriesList.on('click', function (data) {
   categoriesList.focus();
 });
-categoriesList.key('tab', function (ch, key) {
-  foodList.focus();
+recipeList.on('click', function (data) {
+  recipeList.focus();
 });
-foodList.key('tab', function (ch, key) {
-  categoriesList.focus();
-});
-// If box is focused, handle `enter`/`return` and give us some more content.
-categoriesList.key('enter', function (ch, key) {
-  //foodList.setItems(food.item);
-  
-  //categoriesList.setLine(1, 'bar');
-  //categoriesList.insertLine(1, 'foo');
-  screen.render();
-});
-categoriesList.on('select', function (item, select) {
-  foodList.setItems([]);
-  foodList.setItems(food[item.getText()]);
-  screen.render();
-  });
+
 screen.key(['escape', 'q'], function (ch, key) {
   return process.exit(0);
 });
+
+const getCategories = async () => { // ezt ne bántsd
+  const categoryNames = await knex.from('category').select('name', 'id');
+  categoriesList.clearItems();
+  categoryNames.forEach(element => {
+    categoriesList.addItem(element.name + '(' + element.id + ')');
+  });
+  screen.render();
+};
+
+categoriesList.on('select', async function (item, select) {
+  recipeList.setItems([]);
+  const categoryId = (item.getText().split('(')[1].split(')')[0]);
+  getFoodsInCategory(categoryId);
+  screen.render();
+  recipeIsWrittenOnScreen = false;
+});
+
+const getFoodsInCategory = async (categoryId) => {
+  const value = await knex.from('recipe').select('name', 'id').where('categoryId', categoryId);
+  value.forEach(element => {
+    recipeList.addItem(element.name + '(' + element.id + ')');
+  });
+  screen.render();
+};
+
+let recipeIsWrittenOnScreen = false;
+recipeList.on('select', async function (item, select) {
+  if (recipeIsWrittenOnScreen === false) {
+    recipeList.setItems([]);
+    const recipeId = (item.getText().split('(')[1].split(')')[0]);
+    screen.render();
+    getRecipeDetails(recipeId);
+    recipeIsWrittenOnScreen = true;
+  }
+});
+
+const getRecipeDetails = async (recipeId) => {
+  const foodDetails = await knex.from('recipe').select().where('id', recipeId).first();
+  recipeList.setItems([]);
+  (Object.getOwnPropertyNames(foodDetails)).forEach(element => {
+    recipeList.addItem(element + ': ' + foodDetails[element]);
+  });
+  screen.render();
+};
+
+getCategories();
 screen.append(header);
 screen.append(categoriesList);
-screen.append(foodList);
+screen.append(recipeList);
 screen.append(crudBar);
 categoriesList.focus();
 screen.render();
